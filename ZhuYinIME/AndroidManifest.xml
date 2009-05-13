@@ -1,0 +1,32 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="tw.cheyingwu.zhuyin"
+      android:versionCode="1"
+      android:versionName="1.0"
+      android:sharedUserId="android.uid.shared">
+      
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
+    <uses-permission android:name="android.permission.WRITE_USER_DICTIONARY" />
+    
+    <application android:icon="@drawable/icon" android:label="@string/app_name">
+    
+         <!-- Declares the input method service -->
+        <service android:name="ZhuYinIME"
+            android:label="@string/ZhuYinIME_label"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data android:name="android.view.im" android:resource="@xml/method" />
+        </service>
+    
+    
+        <activity android:name="ZhuYinIMESettings"
+                  android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+    </application>
+    <uses-sdk android:minSdkVersion="3" />
+</manifest> 
