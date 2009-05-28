@@ -308,6 +308,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd);
 		// If the current selection in the text view changes, we should
 		// clear whatever candidate text we have.
+		
 		if (mComposing.length() > 0 && mPredicting && (newSelStart != candidatesEnd || newSelEnd != candidatesEnd)) {
 			mComposing.setLength(0);
 			mPredicting = false;
@@ -320,7 +321,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		} else if (!mPredicting && !mJustAccepted && TextEntryState.getState() == TextEntryState.STATE_ACCEPTED_DEFAULT) {
 			TextEntryState.reset();
 		}
-		mJustAccepted = false;
+		mJustAccepted = false;		
 	}
 
 	@Override
@@ -341,6 +342,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 
 	@Override
 	public void onDisplayCompletions(CompletionInfo[] completions) {
+		
 		if (false) {
 			Log.i("foo", "Received completions:");
 			for (int i = 0; i < (completions != null ? completions.length : 0); i++) {
@@ -549,7 +551,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		case -999:
 			this.changeZIKeyboardMode();
 			// 轉中文時開啟預測選單
-			mPredicting = true;
+			mPredicting = false;
 			this.mZiMode = true;
 			break;
 		default:
@@ -632,18 +634,16 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	}
 
 	private void handleCharacter(int primaryCode, int[] keyCodes) {
-		if (isAlphabet(primaryCode) && isPredictionOn() && !isCursorTouchingWord()) {
-			if (!mPredicting) {
-				mPredicting = true;
-				mComposing.setLength(0);
-				mWord.reset();
-			}
+		if (isAlphabet(primaryCode) && isPredictionOn() && !mPredicting) { 
+			mPredicting = true;
+			mComposing.setLength(0);
+			mWord.reset();							
 		}
 		if (mInputView.isShifted()) {
 			primaryCode = Character.toUpperCase(primaryCode);
 		}
 
-		if (mPredicting) {
+		if (mPredicting) {			
 			if (mInputView.isShifted() && mComposing.length() == 0) {
 				mWord.setCapitalized(true);
 			}
@@ -684,8 +684,12 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 				commitTyped(ic);
 			}
 		}
-		sendKeyChar((char) primaryCode);
-		TextEntryState.typedCharacter((char) primaryCode, true);
+		
+		if (!pickedDefault) {
+		  sendKeyChar((char) primaryCode);
+		  TextEntryState.typedCharacter((char) primaryCode, true);
+		}
+		
 		if (TextEntryState.getState() == TextEntryState.STATE_PUNCTUATION_AFTER_ACCEPTED && primaryCode != KEYCODE_ENTER) {
 			swapPunctuationAndSpace();
 		} else if (isPredictionOn() && primaryCode == ' ') {
@@ -760,7 +764,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		mCandidateView.setSuggestions(stringList, false, typedWordValid, correctionAvailable);
 		if (stringList.size() > 0) {
 			if (correctionAvailable && !typedWordValid && stringList.size() > 1) {
-				mBestWord = stringList.get(1);
+				mBestWord = stringList.get(0);
 			} else {
 				mBestWord = typedWord;
 			}
@@ -774,12 +778,13 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		// Complete any pending candidate query first
 		if (mHandler.hasMessages(MSG_UPDATE_SUGGESTIONS)) {
 			mHandler.removeMessages(MSG_UPDATE_SUGGESTIONS);
+			Log.i(TAG, "MSG_UPDATE_SUGGESTIONS");
 			updateSuggestions();
 		}
 		if (mBestWord != null) {
 			TextEntryState.acceptedDefault(mWord.getTypedWord(), mBestWord);
 			mJustAccepted = true;
-			pickSuggestion(mBestWord);
+			pickSuggestion(mBestWord);				
 		}
 	}
 
@@ -816,17 +821,15 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		}
 		InputConnection ic = getCurrentInputConnection();
 		if (ic != null) {
-			Log.i(TAG, "pickSuggestion:" + suggestion.toString());
-			Log.i(TAG, "pickSuggestion:" + suggestion.toString().length());
 			suggestion = suggestion.toString().replace(" ", "");
 			ic.commitText(suggestion, 1);
 		}
-		mPredicting = false;
 		mCommittedLength = suggestion.length();
 		if (mCandidateView != null) {
 			mCandidateView.setSuggestions(null, false, false, false);
-		}
+		}		
 		updateShiftKeyState(getCurrentInputEditorInfo());
+		mPredicting = false;				
 	}
 
 	private boolean isCursorTouchingWord() {

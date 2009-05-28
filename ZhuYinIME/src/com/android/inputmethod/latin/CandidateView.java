@@ -33,6 +33,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -67,7 +68,7 @@ public class CandidateView extends View {
     private int mCurrentWordIndex;
     private Drawable mDivider;
     
-    private static final int MAX_SUGGESTIONS = 32;
+    private static final int MAX_SUGGESTIONS = 50;
     private static final int SCROLL_PIXELS = 20;
     
     private static final int MSG_REMOVE_PREVIEW = 1;
@@ -194,6 +195,8 @@ public class CandidateView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
+    	Log.i("ZhuYinIME", "onDraw");
+    	
         if (canvas != null) {
             super.onDraw(canvas);
         }
@@ -210,6 +213,7 @@ public class CandidateView extends View {
                     mDivider.getIntrinsicHeight());
         }
         int x = 0;
+        int start_of_suggestion = 0;
         final int count = mSuggestions.size(); 
         final int width = getWidth();
         final Rect bgPadding = mBgPadding;
@@ -219,13 +223,18 @@ public class CandidateView extends View {
         final boolean scrolled = mScrolled;
         final boolean typedWordValid = mTypedWordValid;
         final int y = (int) (height + mPaint.getTextSize() - mDescent) / 2;
+        
+        boolean start_to_draw = false;
+        int margin = 0;
+        
+        Log.i("ZhuYinIME", "onDraw: mSuggestions:#" + count);
 
         for (int i = 0; i < count; i++) {
             CharSequence suggestion = mSuggestions.get(i);
             if (suggestion == null) continue;
             paint.setColor(mColorNormal);
             if (mHaveMinimalSuggestion 
-                    && ((i == 1 && !typedWordValid) || (i == 0 && typedWordValid))) {
+                    && ((i == 0 && !typedWordValid) || (i == 0 && typedWordValid))) {
                 paint.setTypeface(Typeface.DEFAULT_BOLD);
                 paint.setColor(mColorRecommended);
             } else if (i != 0) {
@@ -255,19 +264,34 @@ public class CandidateView extends View {
                 mSelectedIndex = i;
             }
 
-            if (canvas != null) {
-                canvas.drawText(suggestion, 0, suggestion.length(), x + X_GAP, y, paint);
-                paint.setColor(mColorOther);
-                canvas.translate(x + wordWidth, 0);
-                mDivider.draw(canvas);
-                canvas.translate(-x - wordWidth, 0);
+            if (canvas != null) {      
+            	int draw_x = x - scrollX - margin;
+            	    
+            	if (draw_x >= 0 && !start_to_draw) {
+            		start_to_draw = true;
+            		margin = draw_x - 0;
+            		draw_x = 0;            		
+            	}
+            	 
+            	if (draw_x + X_GAP > start_of_suggestion) {
+            		canvas.drawText(suggestion, 0, suggestion.length(), draw_x + X_GAP, y, paint);
+            		if (draw_x + wordWidth > start_of_suggestion) {
+            			paint.setColor(mColorOther);            			
+            			canvas.translate(draw_x + wordWidth, 0);
+                       	mDivider.draw(canvas);
+                       	canvas.translate(-draw_x - wordWidth, 0);
+            		}
+            	}
             }
+            
             paint.setTypeface(Typeface.DEFAULT);
             x += wordWidth;
+            	
         }
         mTotalWidth = x;
         if (mTargetScrollX != mScrollX) {
             scrollToTarget();
+            Log.i("ZhuYinIME", "onDraw: scrollToTarget");
         }
     }
     
@@ -287,6 +311,11 @@ public class CandidateView extends View {
         }
         invalidate();
     }
+    
+    public int getmScrollX() {
+    	return mScrollX;
+    }
+    
     
     public void setSuggestions(List<CharSequence> suggestions, boolean completions,
             boolean typedWordValid, boolean haveMinimalSuggestion) {
@@ -310,15 +339,28 @@ public class CandidateView extends View {
         final int count = mSuggestions.size();
         int firstItem = 0; // Actually just before the first item, if at the boundary
         while (i < count) {
-            if (mWordX[i] < mScrollX 
-                    && mWordX[i] + mWordWidth[i] >= mScrollX - 1) {
-                firstItem = i;
+        	if (mWordX[i] == mScrollX) {
+                firstItem = i;// + 1;
                 break;
             }
             i++;
         }
-        int leftEdge = mWordX[firstItem] + mWordWidth[firstItem] - getWidth();
+        
+        int leftEdge = mWordX[firstItem] + mWordWidth[firstItem] - mWordWidth[firstItem] * 6; //getWidth();
         if (leftEdge < 0) leftEdge = 0;
+        
+        i = 0;
+        while (i < count) {
+        	if (mWordX[i] >= leftEdge) {
+        		if (i == 1) {
+        			i = 0;
+        		}
+        		leftEdge = mWordX[i];
+        		break;
+        	}
+        	i++;
+        }
+        
         updateScrollPosition(leftEdge);
     }
     
@@ -330,10 +372,23 @@ public class CandidateView extends View {
         while (i < count) {
             if (mWordX[i] <= rightEdge &&
                     mWordX[i] + mWordWidth[i] >= rightEdge) {
-                targetX = Math.min(mWordX[i], mTotalWidth - getWidth());
+                targetX = mWordX[i - 1];
                 break;
             }
             i++;
+        }
+        
+        if (i > count) {
+        	targetX = mWordX[i - 1];
+        }
+        
+        i = 0;
+        while (i < count) {
+        	if (mWordX[i] >= targetX) {
+        		targetX = mWordX[i];
+        		break;
+        	}      
+        	i++;
         }
         updateScrollPosition(targetX);
     }
@@ -341,6 +396,7 @@ public class CandidateView extends View {
     private void updateScrollPosition(int targetX) {
         if (targetX != mScrollX) {
             // TODO: Animate
+        	Log.i("ZhuYinIME", "updateScrollPosition");
             mTargetScrollX = targetX;
             requestLayout();
             invalidate();

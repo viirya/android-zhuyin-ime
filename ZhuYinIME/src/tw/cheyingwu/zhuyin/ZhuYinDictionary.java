@@ -42,7 +42,7 @@ public class ZhuYinDictionary extends Dictionary {
 		String[] result=this.loadWordDB(code);
 
 		for(String s: result){
-			char[] word = s.toCharArray();
+			char[] word = s.toCharArray();			
 			callback.addWord(word, 0, word.length, 10);
 		}
 		

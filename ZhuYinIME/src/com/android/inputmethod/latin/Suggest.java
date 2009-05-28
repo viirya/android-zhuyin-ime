@@ -41,7 +41,7 @@ public class Suggest implements Dictionary.WordCallback {
     
     private Dictionary mUserDictionary;
     
-    private int mPrefMaxSuggestions = 12;
+    private int mPrefMaxSuggestions = 50;
     
     private int[] mPriorities = new int[mPrefMaxSuggestions];
     private List<CharSequence> mSuggestions = new ArrayList<CharSequence>();
@@ -154,9 +154,13 @@ public class Suggest implements Dictionary.WordCallback {
                 mHaveCorrection = true;
             }
         }
+        
+        /* Do not show original raw input characters in candidate view */
+        /*
         if (mOriginalWord != null) {
             mSuggestions.add(0, mOriginalWord.toString());
         }
+        */
         
         // Check if the first suggestion has a minimum number of characters in common
         if (mCorrectionMode == CORRECTION_FULL && mSuggestions.size() > 1) {

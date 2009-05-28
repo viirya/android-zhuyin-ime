@@ -19,6 +19,7 @@ package com.android.inputmethod.latin;
 import tw.cheyingwu.zhuyin.R;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -41,8 +42,9 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
             mButtonLeftLayout = findViewById(R.id.candidate_left_parent);
             mButtonLeft = findViewById(R.id.candidate_left);
             if (mButtonLeft != null) {
+            	Log.i("ZhuYinIME", "mButtonLeft");
                 mButtonLeft.setOnTouchListener(this);
-            }
+            }            
             mButtonRightLayout = findViewById(R.id.candidate_right_parent);
             mButtonRight = findViewById(R.id.candidate_right);
             if (mButtonRight != null) {
@@ -54,10 +56,12 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
 
     @Override
     public void requestLayout() {
+    	Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout");
         if (mCandidates != null) {
             int availableWidth = mCandidates.getWidth();
             int neededWidth = mCandidates.computeHorizontalScrollRange();
-            int x = mCandidates.getScrollX();
+            int x = mCandidates.getmScrollX();
+            Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout: " + x);
             boolean leftVisible = x > 0;
             boolean rightVisible = x + availableWidth < neededWidth;
             if (mButtonLeftLayout != null) {
@@ -71,6 +75,7 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
     }
 
     public boolean onTouch(View v, MotionEvent event) {
+    	Log.i("ZhuYinIME", "onTouch");
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (v == mButtonRight) {
                 mCandidates.scrollNext();
