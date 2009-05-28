@@ -2,7 +2,7 @@
       package="tw.cheyingwu.zhuyin"
       android:versionCode="1"
       android:versionName="1.0"
-      android:sharedUserId="android.uid.shared">
+      android:sharedUserId="tw.cheyingwu.zhuyin">
       
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
