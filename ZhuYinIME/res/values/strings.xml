@@ -20,6 +20,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 	<string name="ZhuYinIME_label">注音輸入法</string>
 	<string name="app_name">注音輸入法</string>
+	
+	<string name="db_create_error">"無法建立資料庫"</string>
 
     <!-- Title for Latin keyboard  -->
     <string name="english_ime_name">Android keyboard</string>
