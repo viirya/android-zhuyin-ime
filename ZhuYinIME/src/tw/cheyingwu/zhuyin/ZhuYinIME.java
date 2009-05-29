@@ -129,6 +129,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 
 	// 設定是否為中文模式
 	private boolean mZiMode;
+	private boolean prev_mAutoSpace = false;	
 
 	private String mWordSeparators;
 	private String mSentenceSeparators;
@@ -547,12 +548,15 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		case Keyboard.KEYCODE_MODE_CHANGE:
 			changeKeyboardMode();
 			this.mZiMode = false;
+			mAutoSpace = prev_mAutoSpace;
 			break;
 		case -999:
 			this.changeZIKeyboardMode();
 			// 轉中文時開啟預測選單
 			mPredicting = false;
 			this.mZiMode = true;
+			prev_mAutoSpace = mAutoSpace;
+			mAutoSpace = false;
 			break;
 		default:
 			if (isWordSeparator(primaryCode)) {
