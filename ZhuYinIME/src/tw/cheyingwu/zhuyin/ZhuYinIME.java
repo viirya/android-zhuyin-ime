@@ -554,6 +554,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			this.changeZIKeyboardMode();
 			// 轉中文時開啟預測選單
 			mPredicting = false;
+			mPredictionOn = true;
 			this.mZiMode = true;
 			prev_mAutoSpace = mAutoSpace;
 			mAutoSpace = false;
@@ -641,7 +642,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		if (isAlphabet(primaryCode) && isPredictionOn() && !mPredicting) { 
 			mPredicting = true;
 			mComposing.setLength(0);
-			mWord.reset();							
+			mWord.reset();	
 		}
 		if (mInputView.isShifted()) {
 			primaryCode = Character.toUpperCase(primaryCode);
@@ -661,6 +662,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		} else {
 			sendKeyChar((char) primaryCode);
 		}
+		
 		updateShiftKeyState(getCurrentInputEditorInfo());
 		measureCps();
 		TextEntryState.typedCharacter((char) primaryCode, isWordSeparator(primaryCode));
