@@ -293,18 +293,27 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	}
 
 	public void useWords(String code) {
-		db.execSQL("update words set use=use+1 where word='" + code + "'");
+		if(code.length() > 1)
+			db.execSQL("update phrases set use=use+1 where word='" + code + "'");
+		else	
+			db.execSQL("update words set use=use+1 where word='" + code + "'");
 		//Log.i(TAG, "update words set use=use+1 where word='" + code + "'");
 	}	
 
-	public Cursor getWordsRough(String code) {
-		Cursor mCursor = db.query(true, "words", new String[] { "code", "word", "frequency", "use" }, "code" + " LIKE '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+	public Cursor getPhrases(String code) {
+		Cursor mCursor = db.query(true, "phrases", new String[] { "word" }, "code LIKE '" + code + "%' group by word", null, null, null, "use DESC, frequency DESC", "200");
 		//Log.i(TAG, "getWordsRough");
 		return mCursor;
 	}
 
 	public Cursor getWordsExactly(String code) {
-		Cursor mCursor = db.query(true, "words", new String[] { "code", "word", "frequency", "use" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+		Cursor mCursor = db.query(true, "words", new String[] { "word" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+		//Log.i(TAG, "getWordsExactly");
+		return mCursor;
+	}
+
+	public Cursor getWordsRough(String code) {
+		Cursor mCursor = db.query(true, "words", new String[] { "word" }, "code like '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
 		//Log.i(TAG, "getWordsExactly");
 		return mCursor;
 	}

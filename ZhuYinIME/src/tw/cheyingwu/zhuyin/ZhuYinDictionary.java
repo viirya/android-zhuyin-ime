@@ -74,7 +74,7 @@ public class ZhuYinDictionary extends Dictionary {
 		cursor = zdb.getWordsExactly(code);
 		if(cursor.moveToFirst()){
 			while(!cursor.isAfterLast()){
-				String aword = cursor.getString(1);
+				String aword = cursor.getString(0);
 				result.add(aword);
 				cursor.moveToNext();
 			}
@@ -83,7 +83,16 @@ public class ZhuYinDictionary extends Dictionary {
 		cursor = zdb.getWordsRough(code);
 		if(cursor.moveToFirst()){
 			while(!cursor.isAfterLast()){
-				String aword = cursor.getString(1);
+				String aword = cursor.getString(0);
+				result.add(aword);
+				cursor.moveToNext();
+			}
+		}
+		
+		cursor = zdb.getPhrases(code);
+		if(cursor.moveToFirst()){
+			while(!cursor.isAfterLast()){
+				String aword = cursor.getString(0);
 				result.add(aword);
 				cursor.moveToNext();
 			}
