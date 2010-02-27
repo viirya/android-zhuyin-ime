@@ -68,7 +68,7 @@ public class CandidateView extends View {
     private int mCurrentWordIndex;
     private Drawable mDivider;
     
-    private static final int MAX_SUGGESTIONS = 50;
+    private static final int MAX_SUGGESTIONS = 200;
     private static final int SCROLL_PIXELS = 20;
     
     private static final int MSG_REMOVE_PREVIEW = 1;
@@ -195,7 +195,7 @@ public class CandidateView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
-    	Log.i("ZhuYinIME", "onDraw");
+    	//Log.i("ZhuYinIME", "onDraw");
     	
         if (canvas != null) {
             super.onDraw(canvas);
@@ -227,7 +227,7 @@ public class CandidateView extends View {
         boolean start_to_draw = false;
         int margin = 0;
         
-        Log.i("ZhuYinIME", "onDraw: mSuggestions:#" + count);
+        //Log.i("ZhuYinIME", "onDraw: mSuggestions:#" + count);
 
         for (int i = 0; i < count; i++) {
             CharSequence suggestion = mSuggestions.get(i);
@@ -276,7 +276,7 @@ public class CandidateView extends View {
             	if (draw_x + X_GAP > start_of_suggestion) {
             		canvas.drawText(suggestion, 0, suggestion.length(), draw_x + X_GAP, y, paint);
             		if (draw_x + wordWidth > start_of_suggestion) {
-            			paint.setColor(mColorOther);            			
+            			paint.setColor(mColorOther);
             			canvas.translate(draw_x + wordWidth, 0);
                        	mDivider.draw(canvas);
                        	canvas.translate(-draw_x - wordWidth, 0);
@@ -291,7 +291,7 @@ public class CandidateView extends View {
         mTotalWidth = x;
         if (mTargetScrollX != mScrollX) {
             scrollToTarget();
-            Log.i("ZhuYinIME", "onDraw: scrollToTarget");
+            //Log.i("ZhuYinIME", "onDraw: scrollToTarget");
         }
     }
     
@@ -396,7 +396,7 @@ public class CandidateView extends View {
     private void updateScrollPosition(int targetX) {
         if (targetX != mScrollX) {
             // TODO: Animate
-        	Log.i("ZhuYinIME", "updateScrollPosition");
+        	//Log.i("ZhuYinIME", "updateScrollPosition");
             mTargetScrollX = targetX;
             requestLayout();
             invalidate();
@@ -415,6 +415,20 @@ public class CandidateView extends View {
         if (mPreviewPopup.isShowing()) {
             mPreviewPopup.dismiss();
         }
+    }
+
+    public void imClose() {
+    	mService.IMClose();
+    }
+    
+    public int getContentSize() {
+    	int mSize;
+    	if (mSuggestions == null)
+    		return 0;
+    	else {
+    		mSize = mSuggestions.size();
+    		return mSize;
+    	}
     }
     
     @Override
@@ -544,6 +558,8 @@ public class CandidateView extends View {
             showPreview(0, getContext().getResources().getString(R.string.added_word, word));
         }
     }
+
+    
     
     @Override
     public void onDetachedFromWindow() {

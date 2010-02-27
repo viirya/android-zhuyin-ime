@@ -33,12 +33,13 @@ public class BinaryDictionary extends Dictionary {
 
     private static final int TYPED_LETTER_MULTIPLIER = 2;
 
-    private int mNativeDict;
+//    private int mNativeDict;
     private int[] mInputCodes = new int[MAX_WORD_LENGTH * MAX_ALTERNATIVES];
     private WordCallback mWordCallback;
     private char[] mOutputChars = new char[MAX_WORD_LENGTH * MAX_WORDS];
     private int[] mFrequencies = new int[MAX_WORDS];
 
+    /*
     static {
         try {
             System.loadLibrary("jni_latinime");
@@ -46,6 +47,7 @@ public class BinaryDictionary extends Dictionary {
             Log.e("BinaryDictionary", "Could not load native library jni_latinime");
         }
     }
+    */
 
     /**
      * Create a dictionary from a raw resource file
@@ -62,16 +64,16 @@ public class BinaryDictionary extends Dictionary {
             int fullWordMultiplier);
     private native void closeNative(int dict);
     private native boolean isValidWordNative(int nativeData, char[] word, int wordLength);
-    private native int getSuggestionsNative(int dict, int[] inputCodes, int codesSize, 
-            char[] outputChars, int[] frequencies,
-            int maxWordLength, int maxWords, int maxAlternatives);
+//    private native int getSuggestionsNative(int dict, int[] inputCodes, int codesSize, 
+//            char[] outputChars, int[] frequencies,
+//            int maxWordLength, int maxWords, int maxAlternatives);
     private native void setParamsNative(int typedLetterMultiplier,
             int fullWordMultiplier);
 
     private final void loadDictionary(Context context, int resId) {
         AssetManager am = context.getResources().getAssets();
         String assetName = context.getResources().getString(resId);
-        mNativeDict = openNative(am, assetName, TYPED_LETTER_MULTIPLIER, FULL_WORD_FREQ_MULTIPLIER);
+//        mNativeDict = openNative(am, assetName, TYPED_LETTER_MULTIPLIER, FULL_WORD_FREQ_MULTIPLIER);
     }
 
     @Override
@@ -89,34 +91,35 @@ public class BinaryDictionary extends Dictionary {
         }
         Arrays.fill(mOutputChars, (char) 0);
 
-        int count = getSuggestionsNative(mNativeDict, mInputCodes, codesSize, mOutputChars, mFrequencies,
-                MAX_WORD_LENGTH, MAX_WORDS, MAX_ALTERNATIVES);
-
-        for (int j = 0; j < count; j++) {
-            if (mFrequencies[j] < 1) break;
-            int start = j * MAX_WORD_LENGTH;
-            int len = 0;
-            while (mOutputChars[start + len] != 0) {
-                len++;
-            }
-            if (len > 0) {
-                callback.addWord(mOutputChars, start, len, mFrequencies[j]);
-            }
-        }
+//        int count = getSuggestionsNative(mNativeDict, mInputCodes, codesSize, mOutputChars, mFrequencies,
+//                MAX_WORD_LENGTH, MAX_WORDS, MAX_ALTERNATIVES);
+//
+//        for (int j = 0; j < count; j++) {
+//            if (mFrequencies[j] < 1) break;
+//            int start = j * MAX_WORD_LENGTH;
+//            int len = 0;
+//            while (mOutputChars[start + len] != 0) {
+//                len++;
+//            }
+//            if (len > 0) {
+//                callback.addWord(mOutputChars, start, len, mFrequencies[j]);
+//            }
+//        }
     }
 
     @Override
     public boolean isValidWord(CharSequence word) {
         if (word == null) return false;
         char[] chars = word.toString().toLowerCase().toCharArray();
-        return isValidWordNative(mNativeDict, chars, chars.length);
+//        return isValidWordNative(mNativeDict, chars, chars.length);
+        return true;
     }
     
     public synchronized void close() {
-        if (mNativeDict != 0) {
-            closeNative(mNativeDict);
-            mNativeDict = 0;
-        }
+//        if (mNativeDict != 0) {
+//            closeNative(mNativeDict);
+//            mNativeDict = 0;
+//        }
     }
 
     @Override

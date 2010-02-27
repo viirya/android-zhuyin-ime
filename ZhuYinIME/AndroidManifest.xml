@@ -21,7 +21,7 @@
         </service>
     
     
-        <activity android:name="ZhuYinIMESettings"
+        <activity android:name="ZhuYinIMESettingsActivity"
                   android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

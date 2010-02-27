@@ -244,6 +244,14 @@ public class KeyboardSwitcher {
             current.setShifted(false);
         }
     }
+    
+    public void toggleABCIME(){
+    	Log.d(TAG, "KeyboardSwitcher:toggleABCIME");
+    	setKeyboardMode(mMode, mImeOptions);
+    	LatinKeyboard keyboard = (LatinKeyboard) mInputView.getKeyboard();
+    	keyboard.setShifted(false);
+    }
+    
     public void toggleZhuYinIME(){
     	Log.d(TAG, "KeyboardSwitcher:toggleZhuYinIME");
     	LatinKeyboard current = new LatinKeyboard(mContext, R.xml.kbd_zi_qwerty);

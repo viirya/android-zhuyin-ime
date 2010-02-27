@@ -75,5 +75,27 @@
             android:clickable="true"
             />
     </LinearLayout>        
-    
+
+    <LinearLayout
+            android:id="@+id/candidate_right_close_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:clickable="true"
+            android:orientation="horizontal">
+        <ImageView
+            android:src="@drawable/keyboard_suggest_strip_divider"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            />
+        
+        <ImageButton
+            android:id="@+id/candidate_right_close"
+            android:background="@drawable/ic_suggest_scroll_background"
+            android:src="@drawable/ic_suggest_strip_scroll_right_close" 
+            android:layout_width="36dp"
+            android:layout_height="fill_parent"
+            android:clickable="true"
+            />
+    </LinearLayout>
+
 </com.android.inputmethod.latin.CandidateViewContainer>

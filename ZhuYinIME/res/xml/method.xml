@@ -21,5 +21,5 @@
 <!-- for the Input Method Manager. -->
 
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
-        android:settingsActivity="tw.cheyingwu.zhuyin.ZhuYinIMESettings"
+        android:settingsActivity="tw.cheyingwu.zhuyin.ZhuYinIMESettingsActivity"
 />

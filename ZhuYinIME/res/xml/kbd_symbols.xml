@@ -119,7 +119,7 @@
     </Row>
     
     <Row  android:rowEdgeFlags="bottom">
-        <Key android:codes="-2" android:keyLabel="@string/label_alpha_key" 
+        <Key android:codes="-998" android:keyLabel="@string/label_alpha_key" 
                 android:popupKeyboard="@xml/kbd_popup_template"
                 android:popupCharacters=""
                 android:keyWidth="20%p" android:keyEdgeFlags="left"/>

@@ -17,6 +17,7 @@
 package com.android.inputmethod.latin;
 
 import tw.cheyingwu.zhuyin.R;
+import tw.cheyingwu.zhuyin.ZhuYinIME;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -29,8 +30,10 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
 
     private View mButtonLeft;
     private View mButtonRight;
+    private View mButtonRightClose;
     private View mButtonLeftLayout;
     private View mButtonRightLayout;
+    private View mButtonRightCloseLayout;
     private CandidateView mCandidates;
     
     public CandidateViewContainer(Context screen, AttributeSet attrs) {
@@ -42,7 +45,7 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
             mButtonLeftLayout = findViewById(R.id.candidate_left_parent);
             mButtonLeft = findViewById(R.id.candidate_left);
             if (mButtonLeft != null) {
-            	Log.i("ZhuYinIME", "mButtonLeft");
+            	//Log.i("ZhuYinIME", "mButtonLeft");
                 mButtonLeft.setOnTouchListener(this);
             }            
             mButtonRightLayout = findViewById(R.id.candidate_right_parent);
@@ -50,38 +53,51 @@ public class CandidateViewContainer extends LinearLayout implements OnTouchListe
             if (mButtonRight != null) {
                 mButtonRight.setOnTouchListener(this);
             }
+            mButtonRightCloseLayout = findViewById(R.id.candidate_right_close_parent);
+            mButtonRightClose = findViewById(R.id.candidate_right_close);
+            if (mButtonRightClose != null) {
+                mButtonRightClose.setOnTouchListener(this);
+            }            
             mCandidates = (CandidateView) findViewById(R.id.candidates);
         }
     }
 
     @Override
     public void requestLayout() {
-    	Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout");
+    	//Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout");
         if (mCandidates != null) {
             int availableWidth = mCandidates.getWidth();
             int neededWidth = mCandidates.computeHorizontalScrollRange();
             int x = mCandidates.getmScrollX();
-            Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout: " + x);
+            //Log.i("ZhuYinIME", "CandidateViewContainer: requestLayout: " + x);
             boolean leftVisible = x > 0;
             boolean rightVisible = x + availableWidth < neededWidth;
+            boolean rightCloseVisible = mCandidates.getContentSize() == 0;
             if (mButtonLeftLayout != null) {
                 mButtonLeftLayout.setVisibility(leftVisible ? VISIBLE : GONE);
             }
             if (mButtonRightLayout != null) {
                 mButtonRightLayout.setVisibility(rightVisible ? VISIBLE : GONE);
             }
+            if (mButtonRightLayout != null) {
+            	mButtonRightCloseLayout.setVisibility(rightCloseVisible ? VISIBLE : GONE);
+            }
         }
         super.requestLayout();
     }
 
     public boolean onTouch(View v, MotionEvent event) {
-    	Log.i("ZhuYinIME", "onTouch");
+    	//Log.i("ZhuYinIME", "onTouch");
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (v == mButtonRight) {
                 mCandidates.scrollNext();
             } else if (v == mButtonLeft) {
                 mCandidates.scrollPrev();
-            }
+        	}
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+        	if (v == mButtonRightClose) {
+        		mCandidates.imClose();
+        	}
         }
         return false;
     }

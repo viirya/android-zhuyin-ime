@@ -41,7 +41,7 @@ public class Suggest implements Dictionary.WordCallback {
     
     private Dictionary mUserDictionary;
     
-    private int mPrefMaxSuggestions = 50;
+    private int mPrefMaxSuggestions = 200;
     
     private int[] mPriorities = new int[mPrefMaxSuggestions];
     private List<CharSequence> mSuggestions = new ArrayList<CharSequence>();
@@ -82,12 +82,12 @@ public class Suggest implements Dictionary.WordCallback {
 
     /**
      * Number of suggestions to generate from the input key sequence. This has
-     * to be a number between 1 and 100 (inclusive).
+     * to be a number between 1 and 1000 (inclusive).
      * @param maxSuggestions
      * @throws IllegalArgumentException if the number is out of range
      */
     public void setMaxSuggestions(int maxSuggestions) {
-        if (maxSuggestions < 1 || maxSuggestions > 100) {
+        if (maxSuggestions < 1 || maxSuggestions > 200) {
             throw new IllegalArgumentException("maxSuggestions must be between 1 and 100");
         }
         mPrefMaxSuggestions = maxSuggestions;

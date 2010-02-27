@@ -1,9 +1,11 @@
 package tw.cheyingwu.zhuyin;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 import android.app.AlertDialog;
@@ -21,9 +23,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class ZhuYinDictionaryProvider extends ContentProvider {
+	
 	private static final String TAG = "ZhuYinIME";
 	private static final String DATABASE_NAME = "ZhuYin.db";
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 2010022604;
 	private static final String NOTES_TABLE_NAME = "zi";
 
 	private static HashMap<String, String> sNotesProjectionMap;
@@ -45,23 +48,19 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 		}
 
 		@Override
-		public void onCreate(SQLiteDatabase db) {
+		public void onCreate(SQLiteDatabase db){
 
-			String sql = "CREATE TABLE words (code VARCHAR, word VARCHAR, frequency INTEGER);";
-			Log.i(TAG, "CREATE TABLE:" + sql);
-			// db.execSQL("CREATE TABLE " + NOTES_TABLE_NAME + " ("
-			// + "id" + " INTEGER PRIMARY KEY,"
-			// + "zcode" + " VARCHAR,"
-			// + "zword" + " VARCHAR"
-			// + ");");
-			db.execSQL(sql);
+			// Nothing to do here, since we already have data!!
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
-			db.execSQL("DROP TABLE IF EXISTS words");
-			onCreate(db);
+			try {
+				copyDataBase();
+			} catch (IOException e) {
+				throw new Error("Error copying database");
+			}
 		}
 
 		/**
@@ -81,6 +80,7 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 				// of your application so we are gonna be able to overwrite that
 				// database with our database.
 				this.getReadableDatabase();
+				this.close();
 
 				try {
 					copyDataBase();
@@ -106,10 +106,13 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 
 			try {
 				String myPath = DB_PATH + DATABASE_NAME;
-				checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+				Boolean exists = (new File(myPath)).exists();
+				if(exists) {
+					checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
+				}
 
 			} catch (SQLiteException e) {
-				Log.i(TAG, "database does't exist yet");
+				//Log.i(TAG, "database does't exist yet");
 			}
 
 			if (checkDB != null) {
@@ -126,10 +129,17 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 		 * */
 		private void copyDataBase() throws IOException {
 
-			Log.i(TAG, "start to copy database");
+			//Log.i(TAG, "start to copy database");
 
+			InputStream myInput;
 			// Open your local db as the input stream
-			InputStream myInput = myContext.getAssets().open(DATABASE_NAME);
+			try {
+				myInput = myContext.getAssets().open(DATABASE_NAME);
+			} catch (IOException e)
+			{
+				String str = "Open " + DATABASE_NAME + " failed!!";		
+				throw new Error(str);
+			}
 
 			// Path to the just created empty db
 			String outFileName = DB_PATH + DATABASE_NAME;
@@ -144,15 +154,63 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 				myOutput.write(buffer, 0, length);
 			}
 
-			Log.i(TAG, "copy database done");
+			//Log.i(TAG, "copy database done");
 
 			// Close the streams
 			myOutput.flush();
 			myOutput.close();
 			myInput.close();
 
-		}
+/*
+			//Log.i(TAG, "start to copy database");
 
+			String[] files;
+		    try    
+		    {    
+		        files = myContext.getAssets().;    
+		    }    
+		    catch (IOException e)    
+		    {    
+		    	throw new Error("Error finding database files"); 
+		    } 
+
+			// Path to the just created empty db
+			String outFileName = DB_PATH + DATABASE_NAME;
+			OutputStream myOutput;
+			// Open the empty db as the output stream
+			try {
+				myOutput = new FileOutputStream(outFileName);		    
+			} catch (IOException e) {
+				Log.e("ZhuYinDictionaryProvider", outFileName);
+				throw new Error("open output file fail!");
+			}
+		    
+			for (String filename: files) {
+				InputStream myInput;
+				// Open your local db as the input stream
+				try {
+					myInput = myContext.getAssets().open(filename);
+				} catch (IOException e) {
+					Log.e("ZhuYinDictionaryProvider", filename);
+					throw new Error("open input file fail!");
+				}				
+
+				// transfer bytes from the inputfile to the outputfile
+				byte[] buffer = new byte[1024];
+				int length;
+				while ((length = myInput.read(buffer)) > 0) {
+					myOutput.write(buffer, 0, length);
+				}
+				myInput.close();
+			}
+
+			// Close the streams
+			myOutput.flush();
+			myOutput.close();
+
+			//Log.i(TAG, "copy database done");
+*/
+		}	
 	}
 
 	private DatabaseHelper mOpenHelper;
@@ -190,7 +248,7 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 
 	@Override
 	public boolean onCreate() {
-		Log.i(TAG, "CREATE TABLE");
+		//Log.i(TAG, "CREATE TABLE");
 
 		mOpenHelper = new DatabaseHelper(getContext());
 
@@ -234,9 +292,24 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 		mOpenHelper.close();
 	}
 
-	public Cursor getWords(String code) {
-		Cursor mCursor = db.query(true, "words", new String[] { "code", "word", "frequency" }, "code" + " LIKE '" + code + "%'", null, null, null, "frequency DESC", "50");
-		Log.i(TAG, "getWords");
+	public void useWords(String code) {
+		db.execSQL("update words set use=use+1 where word='" + code + "'");
+		//Log.i(TAG, "update words set use=use+1 where word='" + code + "'");
+	}	
+
+	public Cursor getWordsRough(String code) {
+		Cursor mCursor = db.query(true, "words", new String[] { "code", "word", "frequency", "use" }, "code" + " LIKE '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+		//Log.i(TAG, "getWordsRough");
 		return mCursor;
 	}
+
+	public Cursor getWordsExactly(String code) {
+		Cursor mCursor = db.query(true, "words", new String[] { "code", "word", "frequency", "use" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+		//Log.i(TAG, "getWordsExactly");
+		return mCursor;
+	}
+
+
+
+
 }

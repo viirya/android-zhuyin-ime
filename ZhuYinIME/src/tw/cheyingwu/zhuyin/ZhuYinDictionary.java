@@ -28,17 +28,18 @@ public class ZhuYinDictionary extends Dictionary {
 		mContext = context;
 	}
 
+
 	@Override
 	public void getWords(WordComposer composer, WordCallback callback) {
-		Log.i(TAG, "getWords:getTypedWord:"+composer.getTypedWord().toString().length());
-		Log.i(TAG, "getWords:getCodesAt:"+composer.getTypedWord().length());
-		Log.i(TAG, "getWords:composer's length:"+composer.getCodesAt(0).length);
+		//Log.i(TAG, "getWords:getTypedWord:"+composer.getTypedWord().toString().length());
+		//Log.i(TAG, "getWords:getCodesAt:"+composer.getTypedWord().length());
+		//Log.i(TAG, "getWords:composer's length:"+composer.getCodesAt(0).length);
 		
 		String code="";
 		for(int i=0;i<composer.getTypedWord().length();i++){
 			code += String.valueOf(composer.getCodesAt(i)[0]);
 		}
-		Log.i(TAG, "getWords:code:"+code);
+		//Log.i(TAG, "getWords:code:"+code);
 		String[] result=this.loadWordDB(code);
 
 		for(String s: result){
@@ -54,13 +55,32 @@ public class ZhuYinDictionary extends Dictionary {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	public String[] loadWordDB(String code){
-		char[] word=null;
+	
+	public void useWordDB(String code) {
 		ZhuYinDictionaryProvider zdb = new ZhuYinDictionaryProvider(mContext);
 		zdb.open();
+		zdb.useWords(code);
+		zdb.close();
+	}
 		
-		Cursor cursor = zdb.getWords(code);
+	public String[] loadWordDB(String code){
+		char[] word=null;
+		Cursor cursor;
+		ZhuYinDictionaryProvider zdb = new ZhuYinDictionaryProvider(mContext);
+		zdb.open();
+
 		ArrayList<String> result = new ArrayList<String>();
+		
+		cursor = zdb.getWordsExactly(code);
+		if(cursor.moveToFirst()){
+			while(!cursor.isAfterLast()){
+				String aword = cursor.getString(1);
+				result.add(aword);
+				cursor.moveToNext();
+			}
+		}
+
+		cursor = zdb.getWordsRough(code);
 		if(cursor.moveToFirst()){
 			while(!cursor.isAfterLast()){
 				String aword = cursor.getString(1);

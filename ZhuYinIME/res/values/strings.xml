@@ -24,15 +24,26 @@
 	<string name="db_create_error">"無法建立資料庫"</string>
 
     <!-- Title for Latin keyboard  -->
-    <string name="english_ime_name">Android keyboard</string>
+    <string name="english_ime_name">ZhuYin Input</string>
     <!-- Title for Latin keyboard settings activity / dialog -->
-    <string name="english_ime_settings">Android keyboard settings</string>
+    <string name="english_ime_settings">ZhuYin Input Setting</string>
 
     <!-- Option to provide vibrate/haptic feedback on keypress -->
-    <string name="vibrate_on_keypress">Vibrate on keypress</string>
+    <string name="vibrate_on">setting_vibrate_key</string>
+    <string name="vibrate_on_keypress">按鍵震動</string>
     <!-- Option to play back sound on keypress in soft keyboard -->
-    <string name="sound_on_keypress">Sound on keypress</string>
-    
+    <string name="sound_on">setting_sound_key</string>
+    <string name="sound_on_keypress">按鍵聲音</string>
+
+    <string name="setting_enabled">開啟</string>
+    <string name="setting_disabled">關閉</string>
+
+    <string name="default_im">setting_default_im</string>
+    <string name="default_im_keypress">預設輸入法</string>
+
+    <string name="default_im_chinese">中文</string>
+    <string name="default_im_english">英文</string>
+
     <!-- Option to enable using nearby keys when correcting/predicting -->
     <string name="hit_correction">Correct typing errors</string>
     

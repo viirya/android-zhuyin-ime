@@ -19,52 +19,27 @@
         android:key="english_ime_settings">
 
     <CheckBoxPreference
-            android:key="vibrate_on"
-            android:title="@string/vibrate_on_keypress"
-            android:persistent="true"
-            />
-
-    <CheckBoxPreference
-            android:key="sound_on"
+            android:key="@string/sound_on"
             android:title="@string/sound_on_keypress"
-            android:persistent="true" 
+            android:persistent="false"
+			android:summaryOn="@string/setting_enabled"
+			android:summaryOff="@string/setting_disabled"            
             />
 
     <CheckBoxPreference
-            android:key="auto_cap"
-            android:title="@string/auto_cap"
-            android:persistent="true"
-            android:defaultValue="true"
-            />
-
-    <PreferenceCategory
-            android:title="@string/prediction_category"
-            android:key="prediction_settings">
-
-        <CheckBoxPreference
-            android:key="quick_fixes"
-            android:title="@string/quick_fixes"
-            android:summary="@string/quick_fixes_summary"
-            android:persistent="true"
-            android:defaultValue="true"
-            />
-
-        <CheckBoxPreference
-            android:key="show_suggestions"
-            android:title="@string/show_suggestions"
-            android:summary="@string/show_suggestions_summary"
-            android:persistent="true"
-            android:defaultValue="true"
-            />
-
-        <CheckBoxPreference
-            android:key="auto_complete"
-            android:title="@string/auto_complete"
-            android:summary="@string/auto_complete_summary"
-            android:persistent="true" 
-            android:defaultValue="true"
-            android:dependency="show_suggestions"
+            android:key="@string/vibrate_on"
+            android:title="@string/vibrate_on_keypress"
+            android:persistent="false"
+			android:summaryOn="@string/setting_enabled"
+			android:summaryOff="@string/setting_disabled"          
             />
             
-    </PreferenceCategory>            
+    <CheckBoxPreference
+            android:key="@string/default_im"
+            android:title="@string/default_im_keypress"
+            android:persistent="true"
+			android:summaryOn="@string/default_im_chinese"
+			android:summaryOff="@string/default_im_english"          
+            />      
+         
 </PreferenceScreen>

@@ -18,6 +18,7 @@ import com.android.inputmethod.latin.UserDictionary;
 import com.android.inputmethod.latin.WordComposer;
 
 import tw.cheyingwu.zhuyin.R;
+import tw.cheyingwu.zhuyin.ZhuYinIMESettings;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -104,8 +105,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	private boolean mAutoSpace;
 	private boolean mAutoCorrectOn;
 	private boolean mCapsLock;
-	private boolean mVibrateOn;
-	private boolean mSoundOn;
+	//private boolean mVibrateOn;
+	//private boolean mSoundOn;
 	private boolean mAutoCap;
 	private boolean mQuickFixes;
 	private boolean mShowSuggestions;
@@ -127,7 +128,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	private final float FX_VOLUME = 1.0f;
 	private boolean mSilentMode;
 
-	// 設定是否為中文模式
+	// Set to chinese mode or not
 	private boolean mZiMode;
 	private boolean prev_mAutoSpace = false;	
 
@@ -160,6 +161,10 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	public void onCreate() {
 		super.onCreate();
 		// setStatusIcon(R.drawable.ime_qwerty);
+        
+		ZhuYinIMESettings.getInstance(PreferenceManager
+                .getDefaultSharedPreferences(getApplicationContext()));
+        
 		mKeyboardSwitcher = new KeyboardSwitcher(this);
 		initSuggest(getResources().getConfiguration().locale.toString());
 
@@ -185,6 +190,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	public void onDestroy() {
 		// mUserDictionary.close();
 		unregisterReceiver(mReceiver);
+		ZhuYinIMESettings.releaseInstance();
 		super.onDestroy();
 	}
 
@@ -202,7 +208,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		mKeyboardSwitcher.setInputView(mInputView);
 		mKeyboardSwitcher.makeKeyboards();
 		mInputView.setOnKeyboardActionListener(this);
-		mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT, 0);
+		mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT, 0);		
 		return mInputView;
 	}
 
@@ -245,7 +251,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		case EditorInfo.TYPE_CLASS_TEXT:
 			mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT, attribute.imeOptions);
 			// startPrediction();
-			mPredictionOn = true;
+			//mPredictionOn = true;
+			mPredictionOn = false;
 			// Make sure that passwords are not displayed in candidate view
 			int variation = attribute.inputType & EditorInfo.TYPE_MASK_VARIATION;
 			if (variation == EditorInfo.TYPE_TEXT_VARIATION_PASSWORD || variation == EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
@@ -281,7 +288,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		mComposing.setLength(0);
 		mPredicting = false;
 		mDeleteCount = 0;
-		setCandidatesViewShown(false);
+		//setCandidatesViewShown(false);
+		setCandidatesViewShown(true);
 		if (mCandidateView != null)
 			mCandidateView.setSuggestions(null, false, false, false);
 		loadSettings();
@@ -291,8 +299,18 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		}
 		mPredictionOn = mPredictionOn && mCorrectionMode > 0;
 		checkTutorial(attribute.privateImeOptions);
+		
+		if(ZhuYinIMESettings.getDefaultIM()) {
+			this.changeZIKeyboardMode();
+			mPredicting = false;
+			mPredictionOn = true;
+			mZiMode = true;
+			prev_mAutoSpace = mAutoSpace;
+			mAutoSpace = false;
+		}
+		
 		if (TRACE)
-			Debug.startMethodTracing("latinime");
+			Debug.startMethodTracing("latinime");		 
 	}
 
 	@Override
@@ -345,9 +363,9 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	public void onDisplayCompletions(CompletionInfo[] completions) {
 		
 		if (false) {
-			Log.i("foo", "Received completions:");
+			//Log.i("foo", "Received completions:");
 			for (int i = 0; i < (completions != null ? completions.length : 0); i++) {
-				Log.i("foo", "  #" + i + ": " + completions[i]);
+				//Log.i("foo", "  #" + i + ": " + completions[i]);
 			}
 		}
 		if (mCompletionOn) {
@@ -444,11 +462,12 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			}
 			if (mComposing.length() > 0) {
 				if (inputConnection != null) {
-					Log.i(TAG, "commitTyped:" + mComposing.toString());
+					//Log.i(TAG, "commitTyped:" + mComposing.toString());
 					inputConnection.commitText(mComposing, 1);
 				}
 				mCommittedLength = mComposing.length();
 				TextEntryState.acceptedTyped(mComposing);
+				mUserDictionary.useWordDB(mComposing.toString());
 			}
 			updateSuggestions();
 		}
@@ -474,7 +493,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		if (lastTwo != null && lastTwo.length() == 2 && lastTwo.charAt(0) == KEYCODE_SPACE && isSentenceSeparator(lastTwo.charAt(1))) {
 			ic.beginBatchEdit();
 			ic.deleteSurroundingText(2, 0);
-			Log.i(TAG, "swapPunctuationAndSpace:");
+			//Log.i(TAG, "swapPunctuationAndSpace:");
 			ic.commitText(lastTwo.charAt(1) + "", 1);
 			ic.endBatchEdit();
 			updateShiftKeyState(getCurrentInputEditorInfo());
@@ -493,7 +512,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 				&& lastThree.charAt(2) == KEYCODE_SPACE) {
 			ic.beginBatchEdit();
 			ic.deleteSurroundingText(2, 0);
-			Log.i(TAG, "doubleSpace:");
+			//Log.i(TAG, "doubleSpace:");
 			ic.commitText(". ", 1);
 			ic.endBatchEdit();
 			updateShiftKeyState(getCurrentInputEditorInfo());
@@ -502,6 +521,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 
 	public boolean addWordToDictionary(String word) {
 		// mUserDictionary.addWord(word, 128);
+		String str = "addWordToDictionary: " + word;
+		//Log.i(TAG, str);
 		return true;
 	}
 
@@ -514,9 +535,9 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	}
 
 	// Implementation of KeyboardViewListener
-	// 接收VK的輸入
+	// Receive VK Input
 	public void onKey(int primaryCode, int[] keyCodes) {
-		Log.i(TAG, "onKey:" + primaryCode);
+		//Log.i(TAG, "onKey:" + primaryCode);
 		long when = SystemClock.uptimeMillis();
 		if (primaryCode != Keyboard.KEYCODE_DELETE || when > mLastKeyTime + QUICK_PRESS) {
 			mDeleteCount = 0;
@@ -550,9 +571,17 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			this.mZiMode = false;
 			mAutoSpace = prev_mAutoSpace;
 			break;
+		case -998:
+			this.changeABCKeyboardMode();
+			mPredicting = false;
+			mPredictionOn = false;
+			this.mZiMode = false;
+			prev_mAutoSpace = mAutoSpace;
+			mAutoSpace = false;
+			break;			
 		case -999:
 			this.changeZIKeyboardMode();
-			// 轉中文時開啟預測選單
+			// Switch to Chinese input and prediction on
 			mPredicting = false;
 			mPredictionOn = true;
 			this.mZiMode = true;
@@ -561,10 +590,10 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			break;
 		default:
 			if (isWordSeparator(primaryCode)) {
-				Log.i(TAG, "onKey:isWordSeparator:true:" + primaryCode);
+				//Log.i(TAG, "onKey:isWordSeparator:true:" + primaryCode);
 				handleSeparator(primaryCode);
 			} else {
-				Log.i(TAG, "onKey:isWordSeparator:false:" + primaryCode);
+				//Log.i(TAG, "onKey:isWordSeparator:false:" + primaryCode);
 				handleCharacter(primaryCode, keyCodes);
 			}
 			// Cancel the just reverted state
@@ -572,9 +601,12 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		}
 	}
 
+	private void changeABCKeyboardMode() {
+		mKeyboardSwitcher.toggleABCIME();
+	}
+	
 	private void changeZIKeyboardMode() {
 		mKeyboardSwitcher.toggleZhuYinIME();
-
 	}
 
 	public void onText(CharSequence text) {
@@ -585,7 +617,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		if (mPredicting) {
 			commitTyped(ic);
 		}
-		Log.i(TAG, "onText:" + text.toString());
+		//Log.i(TAG, "onText:" + text.toString());
 		ic.commitText(text, 1);
 		ic.endBatchEdit();
 		updateShiftKeyState(getCurrentInputEditorInfo());
@@ -718,6 +750,10 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		TextEntryState.endSession();
 	}
 
+	public void IMClose() {
+		this.handleClose();
+	}
+
 	private void checkToggleCapsLock() {
 		if (mInputView.getKeyboard().isShifted()) {
 			toggleCapsLock();
@@ -784,7 +820,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		// Complete any pending candidate query first
 		if (mHandler.hasMessages(MSG_UPDATE_SUGGESTIONS)) {
 			mHandler.removeMessages(MSG_UPDATE_SUGGESTIONS);
-			Log.i(TAG, "MSG_UPDATE_SUGGESTIONS");
+			//Log.i(TAG, "MSG_UPDATE_SUGGESTIONS");
 			updateSuggestions();
 		}
 		if (mBestWord != null) {
@@ -830,6 +866,9 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			suggestion = suggestion.toString().replace(" ", "");
 			ic.commitText(suggestion, 1);
 		}
+		
+        mUserDictionary.useWordDB(suggestion.toString());
+        
 		mCommittedLength = suggestion.length();
 		if (mCandidateView != null) {
 			mCandidateView.setSuggestions(null, false, false, false);
@@ -958,7 +997,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 				updateRingerMode();
 			}
 		}
-		if (mSoundOn && !mSilentMode) {
+		if (ZhuYinIMESettings.getKeySound() && !mSilentMode) {
 			// FIXME: Volume and enable should come from UI settings
 			// FIXME: These should be triggered after auto-repeat logic
 			int sound = AudioManager.FX_KEYPRESS_STANDARD;
@@ -978,7 +1017,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	}
 
 	private void vibrate() {
-		if (!mVibrateOn) {
+		if (!ZhuYinIMESettings.getVibrate()) {
 			return;
 		}
 		if (mVibrator == null) {
@@ -1013,7 +1052,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	private void launchSettings() {
 		handleClose();
 		Intent intent = new Intent();
-		intent.setClass(ZhuYinIME.this, ZhuYinIMESettings.class);
+		intent.setClass(ZhuYinIME.this, ZhuYinIMESettingsActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 	}
@@ -1021,8 +1060,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 	private void loadSettings() {
 		// Get the settings preferences
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-		mVibrateOn = sp.getBoolean(PREF_VIBRATE_ON, false);
-		mSoundOn = sp.getBoolean(PREF_SOUND_ON, false);
+		//mVibrateOn = sp.getBoolean(PREF_VIBRATE_ON, false);
+		//mSoundOn = sp.getBoolean(PREF_SOUND_ON, false);
 		mAutoCap = sp.getBoolean(PREF_AUTO_CAP, true);
 		mQuickFixes = sp.getBoolean(PREF_QUICK_FIXES, true);
 		// If there is no auto text data, then quickfix is forced to "on", so
@@ -1094,8 +1133,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		p.println("  mAutoSpace=" + mAutoSpace);
 		p.println("  mCompletionOn=" + mCompletionOn);
 		p.println("  TextEntryState.state=" + TextEntryState.getState());
-		p.println("  mSoundOn=" + mSoundOn);
-		p.println("  mVibrateOn=" + mVibrateOn);
+		//p.println("  mSoundOn=" + mSoundOn);
+		//p.println("  mVibrateOn=" + mVibrateOn);
 	}
 
 	// Characters per second measurement

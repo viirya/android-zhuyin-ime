@@ -161,10 +161,14 @@
     </Row>
 
     <Row android:keyboardMode="@+id/mode_im" android:rowEdgeFlags="bottom">
+        <Key android:codes="-999" android:keyLabel="@string/label_ziime" 
+                android:popupKeyboard="@xml/kbd_popup_template"
+                android:popupCharacters=""
+                android:keyWidth="10%p" android:keyEdgeFlags="left"/>
         <Key android:codes="-2" android:keyLabel="@string/label_symbol_key" 
                 android:popupKeyboard="@xml/kbd_popup_template"
                 android:popupCharacters=""
-                android:keyWidth="20%p" android:keyEdgeFlags="left"/>
+                android:keyWidth="10%p" />
         <Key android:keyLabel="," android:keyWidth="15%p"/>
         <Key android:codes="32" android:keyIcon="@drawable/sym_keyboard_space" 
                 android:iconPreview="@drawable/sym_keyboard_feedback_space"
