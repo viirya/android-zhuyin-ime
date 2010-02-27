@@ -58,7 +58,7 @@ public class ConvertCIN {
 		codeTable.put('y', "12567");
 		codeTable.put('z', "12552");
 
-		BufferedReader bufReader = new BufferedReader(new FileReader("bpmf.cin"));
+		BufferedReader bufReader = new BufferedReader(new FileReader("res/bpmf.cin"));
 		String stringLine = null;
 		
 		while ((stringLine = bufReader.readLine()) != null) {

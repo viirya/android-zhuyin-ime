@@ -96,7 +96,7 @@ public class WordsDB {
 		File file = new File("res/docs");
 		File[] files = file.listFiles();
 		for (File f : files) {
-			// System.out.println(f.toString());
+			 System.out.println(f.toString());
 			try {
 				BufferedReader bufReader = new BufferedReader(new FileReader(f.toString()));
 				String stringLine = null;
