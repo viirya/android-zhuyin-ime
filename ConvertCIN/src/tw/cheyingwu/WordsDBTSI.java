@@ -139,21 +139,36 @@ public class WordsDBTSI {
 			Statement stat = conn.createStatement();
 			stat.executeUpdate("DROP TABLE IF EXISTS words;");
 			stat.executeUpdate("CREATE TABLE words (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
+			stat.executeUpdate("CREATE INDEX idx_words_code ON words (code);");
+			stat.executeUpdate("CREATE TABLE phrases (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
+			stat.executeUpdate("CREATE INDEX idx_phrases_code ON phrases (code);");
 
-			PreparedStatement prep = conn.prepareStatement("INSERT INTO words VALUES (?, ?, ?, 0);");
+			
+			PreparedStatement prep_words = conn.prepareStatement("INSERT INTO words VALUES (?, ?, ?, 0);");
+			PreparedStatement prep_phrases = conn.prepareStatement("INSERT INTO phrases VALUES (?, ?, ?, 0);");
 
+			
 			for (WordRow wr : this.wordRowList) {
 			 // Filter words
 			 if(wr.frequency>2000 || (wr.word.length()==1 && wr.frequency>100)) {
-				 prep.setString(1, wr.code);
-				 prep.setString(2, wr.word);
-				 prep.setInt(3, wr.frequency);
-				 prep.addBatch();
+				 if(wr.word.length()==1) {
+					 prep_words.setString(1, wr.code);
+					 prep_words.setString(2, wr.word);
+					 prep_words.setInt(3, wr.frequency);
+					 prep_words.addBatch();
+				 }
+				 else {
+					 prep_phrases.setString(1, wr.code);
+					 prep_phrases.setString(2, wr.word);
+					 prep_phrases.setInt(3, wr.frequency);
+					 prep_phrases.addBatch();
+				 }				 
 			 }
 			}
 
 			conn.setAutoCommit(false);
-			prep.executeBatch();
+			prep_words.executeBatch();
+			prep_phrases.executeBatch();
 			conn.setAutoCommit(true);
 
 			// Create view
