@@ -805,7 +805,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 
 		mCandidateView.setSuggestions(stringList, false, typedWordValid, correctionAvailable);
 		if (stringList.size() > 0) {
-			if (correctionAvailable && !typedWordValid && stringList.size() > 1) {
+			if (correctionAvailable && typedWordValid && stringList.size() > 1) {
 				mBestWord = stringList.get(0);
 			} else {
 				mBestWord = typedWord;
@@ -827,6 +827,7 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 			TextEntryState.acceptedDefault(mWord.getTypedWord(), mBestWord);
 			mJustAccepted = true;
 			pickSuggestion(mBestWord);				
+            TextEntryState.typedCharacter((char) KEYCODE_SPACE, true);
 		}
 	}
 
@@ -875,6 +876,8 @@ public class ZhuYinIME extends InputMethodService implements KeyboardView.OnKeyb
 		}		
 		updateShiftKeyState(getCurrentInputEditorInfo());
 		mPredicting = false;				
+        mComposing.setLength(0);
+        updateSuggestions();
 	}
 
 	private boolean isCursorTouchingWord() {
