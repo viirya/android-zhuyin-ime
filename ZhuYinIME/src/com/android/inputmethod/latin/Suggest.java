@@ -41,7 +41,7 @@ public class Suggest implements Dictionary.WordCallback {
     
     private Dictionary mUserDictionary;
     
-    private int mPrefMaxSuggestions = 200;
+    private Integer mPrefMaxSuggestions = CandidateView.getMaxSuggest();
     
     private int[] mPriorities = new int[mPrefMaxSuggestions];
     private List<CharSequence> mSuggestions = new ArrayList<CharSequence>();
@@ -87,8 +87,8 @@ public class Suggest implements Dictionary.WordCallback {
      * @throws IllegalArgumentException if the number is out of range
      */
     public void setMaxSuggestions(int maxSuggestions) {
-        if (maxSuggestions < 1 || maxSuggestions > 200) {
-            throw new IllegalArgumentException("maxSuggestions must be between 1 and 100");
+        if (maxSuggestions < 1 || maxSuggestions > mPrefMaxSuggestions) {
+            throw new IllegalArgumentException("maxSuggestions must be between 1 and " + mPrefMaxSuggestions.toString());
         }
         mPrefMaxSuggestions = maxSuggestions;
         mPriorities = new int[mPrefMaxSuggestions];
@@ -141,7 +141,7 @@ public class Suggest implements Dictionary.WordCallback {
             mLowerOriginalWord = "";
         }
         // Search the dictionary only if there are at least 2 characters
-        // onlinemad 因應中文改為一輸入就出現建議  1->0
+        // onlinemad ?��?中�??�為一輸入就出?�建�? 1->0
         if (wordComposer.size() > 0) {
             if (mUserDictionary != null) {
                 mUserDictionary.getWords(wordComposer, this);

@@ -184,6 +184,10 @@ public class CandidateView extends View {
         mService = listener;
     }
     
+    public static Integer getMaxSuggest() {
+        return MAX_SUGGESTIONS;
+    }    
+    
     @Override
     public int computeHorizontalScrollRange() {
         return mTotalWidth;

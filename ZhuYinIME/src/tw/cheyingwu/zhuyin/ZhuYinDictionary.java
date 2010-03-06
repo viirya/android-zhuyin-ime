@@ -12,9 +12,11 @@ import android.util.Log;
 
 import com.android.inputmethod.latin.Dictionary;
 import com.android.inputmethod.latin.WordComposer;
+import com.android.inputmethod.latin.CandidateView;
 
 public class ZhuYinDictionary extends Dictionary {
 	private static final String TAG = "ZhuYinIME";
+	private Integer MaxWords; 
 	
     private static final String[] PROJECTION = {
         Words._ID,
@@ -26,6 +28,7 @@ public class ZhuYinDictionary extends Dictionary {
 
 	public ZhuYinDictionary(Context context) {
 		mContext = context;
+		MaxWords = CandidateView.getMaxSuggest();
 	}
 
 
@@ -56,45 +59,55 @@ public class ZhuYinDictionary extends Dictionary {
 		return false;
 	}
 	
-	public void useWordDB(String code) {
+	public void useWordDB(String word) {
 		ZhuYinDictionaryProvider zdb = new ZhuYinDictionaryProvider(mContext);
 		zdb.open();
-		zdb.useWords(code);
+		zdb.useWords(word);
 		zdb.close();
 	}
 		
 	public String[] loadWordDB(String code){
 		char[] word=null;
+		Integer leftWords = MaxWords;
 		Cursor cursor;
 		ZhuYinDictionaryProvider zdb = new ZhuYinDictionaryProvider(mContext);
 		zdb.open();
 
 		ArrayList<String> result = new ArrayList<String>();
 		
-		cursor = zdb.getWordsExactly(code);
+		zdb.setSearchCode(code);
+		
+		cursor = zdb.getWordsExactly(leftWords);
 		if(cursor.moveToFirst()){
 			while(!cursor.isAfterLast()){
 				String aword = cursor.getString(0);
 				result.add(aword);
 				cursor.moveToNext();
+				leftWords--;
 			}
 		}
 
-		cursor = zdb.getWordsRough(code);
-		if(cursor.moveToFirst()){
-			while(!cursor.isAfterLast()){
-				String aword = cursor.getString(0);
-				result.add(aword);
-				cursor.moveToNext();
+		if(leftWords > 0) {
+			cursor = zdb.getWordsRough(leftWords);
+			if(cursor.moveToFirst()){
+				while(!cursor.isAfterLast()){
+					String aword = cursor.getString(0);
+					result.add(aword);
+					cursor.moveToNext();
+					leftWords--;
+				}
 			}
 		}
 		
-		cursor = zdb.getPhrases(code);
-		if(cursor.moveToFirst()){
-			while(!cursor.isAfterLast()){
-				String aword = cursor.getString(0);
-				result.add(aword);
-				cursor.moveToNext();
+		if(leftWords > 0) {
+			cursor = zdb.getPhrases(leftWords);
+			if(cursor.moveToFirst()){
+				while(!cursor.isAfterLast()){
+					String aword = cursor.getString(0);
+					result.add(aword);
+					cursor.moveToNext();
+					leftWords--;
+				}
 			}
 		}
 

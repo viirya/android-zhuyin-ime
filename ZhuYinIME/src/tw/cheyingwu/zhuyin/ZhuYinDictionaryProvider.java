@@ -8,7 +8,10 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -19,6 +22,10 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,11 +35,15 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	private static final String DATABASE_NAME = "ZhuYin.db";
 	private static final int DATABASE_VERSION = 2010022604;
 	private static final String NOTES_TABLE_NAME = "zi";
+	private static final Integer INPUT_DB_FILES = 10; // According to ZhuYin.dbx in assets
 
 	private static HashMap<String, String> sNotesProjectionMap;
+	private static HashMap<String, String> codeMap;
+	private static String mSearchCode;
 
 	private Context context;
 	private SQLiteDatabase db;
+	
 
 	/**
 	 * This class helps open, create, and upgrade the database file.
@@ -121,7 +132,7 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 
 			return checkDB != null ? true : false;
 		}
-
+		
 		/**
 		 * Copies your database from your local assets-folder to the just
 		 * created empty database in the system folder, from where it can be
@@ -132,68 +143,23 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 			//Log.i(TAG, "start to copy database");
 
 			InputStream myInput;
-			// Open your local db as the input stream
-			try {
-				myInput = myContext.getAssets().open(DATABASE_NAME);
-			} catch (IOException e)
-			{
-				String str = "Open " + DATABASE_NAME + " failed!!";		
-				throw new Error(str);
-			}
-
+			
 			// Path to the just created empty db
 			String outFileName = DB_PATH + DATABASE_NAME;
 
 			// Open the empty db as the output stream
 			OutputStream myOutput = new FileOutputStream(outFileName);
 
-			// transfer bytes from the inputfile to the outputfile
-			byte[] buffer = new byte[1024];
-			int length;
-			while ((length = myInput.read(buffer)) > 0) {
-				myOutput.write(buffer, 0, length);
-			}
+			for(Integer fIdx = 0; fIdx < INPUT_DB_FILES; fIdx++) {
 
-			//Log.i(TAG, "copy database done");
-
-			// Close the streams
-			myOutput.flush();
-			myOutput.close();
-			myInput.close();
-
-/*
-			//Log.i(TAG, "start to copy database");
-
-			String[] files;
-		    try    
-		    {    
-		        files = myContext.getAssets().;    
-		    }    
-		    catch (IOException e)    
-		    {    
-		    	throw new Error("Error finding database files"); 
-		    } 
-
-			// Path to the just created empty db
-			String outFileName = DB_PATH + DATABASE_NAME;
-			OutputStream myOutput;
-			// Open the empty db as the output stream
-			try {
-				myOutput = new FileOutputStream(outFileName);		    
-			} catch (IOException e) {
-				Log.e("ZhuYinDictionaryProvider", outFileName);
-				throw new Error("open output file fail!");
-			}
-		    
-			for (String filename: files) {
-				InputStream myInput;
 				// Open your local db as the input stream
 				try {
-					myInput = myContext.getAssets().open(filename);
-				} catch (IOException e) {
-					Log.e("ZhuYinDictionaryProvider", filename);
-					throw new Error("open input file fail!");
-				}				
+					myInput = myContext.getAssets().open(DATABASE_NAME + fIdx.toString());
+				} catch (IOException e)
+				{
+					// No such file
+					break;
+				}			
 
 				// transfer bytes from the inputfile to the outputfile
 				byte[] buffer = new byte[1024];
@@ -201,20 +167,84 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 				while ((length = myInput.read(buffer)) > 0) {
 					myOutput.write(buffer, 0, length);
 				}
+
 				myInput.close();
 			}
+				
+			//Log.i(TAG, "copy database done");
 
 			// Close the streams
 			myOutput.flush();
 			myOutput.close();
-
-			//Log.i(TAG, "copy database done");
-*/
 		}	
 	}
 
-	private DatabaseHelper mOpenHelper;
+	private void ZhuYinDictionaryCodeMap() {
 
+		codeMap = new HashMap<String, String>();
+		
+		codeMap.put("12549", "10");
+		codeMap.put("12550", "11");
+		codeMap.put("12551", "12");
+		codeMap.put("12552", "13");
+		codeMap.put("12553", "14");
+		codeMap.put("12554", "15");
+		codeMap.put("12555", "16");
+		codeMap.put("12556", "17");
+		codeMap.put("12557", "18");
+		codeMap.put("12558", "19");
+		codeMap.put("12559", "1A");
+		codeMap.put("12560", "1B");
+		codeMap.put("12561", "1C");
+		codeMap.put("12562", "1D");
+		codeMap.put("12563", "1E");
+		codeMap.put("12564", "1F");
+		codeMap.put("12565", "1G");
+		codeMap.put("12566", "1H");
+		codeMap.put("12567", "1I");
+		codeMap.put("12568", "1J");
+		codeMap.put("12569", "1K");
+		codeMap.put("12570", "20");
+		codeMap.put("12571", "21");
+		codeMap.put("12572", "22");
+		codeMap.put("12573", "23");
+		codeMap.put("12574", "24");
+		codeMap.put("12575", "25");
+		codeMap.put("12576", "26");
+		codeMap.put("12577", "27");
+		codeMap.put("12578", "28");
+		codeMap.put("12579", "29");
+		codeMap.put("12580", "2A");
+		codeMap.put("12581", "2B");
+		codeMap.put("12582", "2C");
+		codeMap.put("12583", "30");
+		codeMap.put("12584", "31");
+		codeMap.put("12585", "32");
+		codeMap.put("729",  "40");
+		codeMap.put("714",  "41");		
+		codeMap.put("711",  "42");
+		codeMap.put("715",  "43");		
+	}
+
+	private String transDBCode(String code) {
+
+		String subCode;
+		String transCode = "";
+		while(code.length()>0)
+		{
+			if(code.substring(0, 1).matches("7"))
+				subCode = code.substring(0, 3);
+			else
+				subCode = code.substring(0, 5);
+			code = code.replaceFirst(subCode, "");
+			transCode += codeMap.get(subCode);
+		}
+		return transCode;
+	}
+	
+		
+	private DatabaseHelper mOpenHelper;
+	
 	public ZhuYinDictionaryProvider(Context ctx) {
 		this.context = ctx;
 		mOpenHelper = new DatabaseHelper(this.context);
@@ -225,7 +255,8 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 			// throw new Error("Unable to create database");
 			Toast.makeText(ctx, R.string.db_create_error, Toast.LENGTH_SHORT).show();
 		}
-
+		
+		ZhuYinDictionaryCodeMap();
 	}
 
 	@Override
@@ -292,33 +323,38 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 		mOpenHelper.close();
 	}
 
-	public void useWords(String code) {
-		if(code.length() > 1)
-			db.execSQL("update phrases set use=use+1 where word='" + code + "'");
+	public void setSearchCode(String code) {
+		mSearchCode = transDBCode(code);
+	}
+	
+	public void useWords(String word) {
+		String code = mSearchCode;
+		if(word.length() > 1)
+			db.execSQL("update phrases_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
 		else	
-			db.execSQL("update words set use=use+1 where word='" + code + "'");
+			db.execSQL("update words_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
 		//Log.i(TAG, "update words set use=use+1 where word='" + code + "'");
 	}	
 
-	public Cursor getPhrases(String code) {
-		Cursor mCursor = db.query(true, "phrases", new String[] { "word" }, "code LIKE '" + code + "%' group by word", null, null, null, "use DESC, frequency DESC", "200");
+	public Cursor getPhrases(Integer limit) {
+		String code = mSearchCode;
+		Cursor mCursor = db.query(true, "phrases_" + code.substring(0, 2), new String[] { "word" }, "code LIKE '" + code + "%' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsRough");
 		return mCursor;
 	}
 
-	public Cursor getWordsExactly(String code) {
-		Cursor mCursor = db.query(true, "words", new String[] { "word" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+	public Cursor getWordsExactly(Integer limit) {
+		String code = mSearchCode;
+		Cursor mCursor = db.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsExactly");
 		return mCursor;
 	}
 
-	public Cursor getWordsRough(String code) {
-		Cursor mCursor = db.query(true, "words", new String[] { "word" }, "code like '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", "200");
+	public Cursor getWordsRough(Integer limit) {
+		String code = mSearchCode;
+		Cursor mCursor = db.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code like '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsExactly");
 		return mCursor;
 	}
-
-
-
 
 }
