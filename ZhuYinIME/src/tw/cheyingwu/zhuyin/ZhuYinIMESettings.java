@@ -11,12 +11,15 @@ public class ZhuYinIMESettings {
     private static final String ANDPY_CONFS_KEYSOUND_KEY = "Sound";
     private static final String ANDPY_CONFS_VIBRATE_KEY = "Vibrate";
     private static final String ANDPY_CONFS_DEFAULTIM_KEY = "DefaultIM";
-    private static final String ANDPY_CONFS_PREDICTION_KEY = "Prediction";
+    private static final String ANDPY_CONFS_CANDIDATECNT_KEY = "CandidateCnt";
+    //private static final String ANDPY_CONFS_PREDICTION_KEY = "Prediction";
     
     private static boolean mKeySound;
     private static boolean mVibrate;
     private static boolean mDefaultIM;
-    private static boolean mPrediction;
+    private static int mCandidateCnt;
+    //private static boolean mPrediction;
+    
     
     private static ZhuYinIMESettings mInstance = null;
 
@@ -43,7 +46,8 @@ public class ZhuYinIMESettings {
         editor.putBoolean(ANDPY_CONFS_VIBRATE_KEY, mVibrate);
         editor.putBoolean(ANDPY_CONFS_KEYSOUND_KEY, mKeySound);
         editor.putBoolean(ANDPY_CONFS_DEFAULTIM_KEY, mDefaultIM);
-        editor.putBoolean(ANDPY_CONFS_PREDICTION_KEY, mPrediction);
+        editor.putInt(ANDPY_CONFS_CANDIDATECNT_KEY, mCandidateCnt);
+        //editor.putBoolean(ANDPY_CONFS_PREDICTION_KEY, mPrediction);
         editor.commit();
     }
 
@@ -58,6 +62,7 @@ public class ZhuYinIMESettings {
         mKeySound = mSharedPref.getBoolean(ANDPY_CONFS_KEYSOUND_KEY, false);
         mVibrate = mSharedPref.getBoolean(ANDPY_CONFS_VIBRATE_KEY, false);
         mDefaultIM = mSharedPref.getBoolean(ANDPY_CONFS_DEFAULTIM_KEY, true);
+        mCandidateCnt = mSharedPref.getInt(ANDPY_CONFS_CANDIDATECNT_KEY, 50);
 //        mPrediction = mSharedPref.getBoolean(ANDPY_CONFS_PREDICTION_KEY, true);
     }
 
@@ -88,6 +93,14 @@ public class ZhuYinIMESettings {
         mDefaultIM = v;
     }
     
+    public static int getCandidateCnt() {
+        return mCandidateCnt;
+    }
+
+    public static void setCandidateCnt(int v) {
+        if (mCandidateCnt == v) return;
+        mCandidateCnt = v;
+    }
     
 /*
     public static boolean getPrediction() {

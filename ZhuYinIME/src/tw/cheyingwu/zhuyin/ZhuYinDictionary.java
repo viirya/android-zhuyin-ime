@@ -68,7 +68,7 @@ public class ZhuYinDictionary extends Dictionary {
 		
 	public String[] loadWordDB(String code){
 		char[] word=null;
-		Integer leftWords = MaxWords;
+		Integer leftWords = ZhuYinIMESettings.getCandidateCnt();
 		Cursor cursor;
 		ZhuYinDictionaryProvider zdb = new ZhuYinDictionaryProvider(mContext);
 		zdb.open();

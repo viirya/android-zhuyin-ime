@@ -5,6 +5,7 @@ import java.util.List;
 import tw.cheyingwu.zhuyin.R;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
@@ -25,6 +26,7 @@ public class ZhuYinIMESettingsActivity extends PreferenceActivity implements
     private CheckBoxPreference mKeySoundPref;
     private CheckBoxPreference mVibratePref;
     private CheckBoxPreference mDefaultIMPref;
+    private ListPreference mCandidateCntPref;
     //private CheckBoxPreference mPredictionPref;
     
     @Override
@@ -40,6 +42,8 @@ public class ZhuYinIMESettingsActivity extends PreferenceActivity implements
                 .findPreference(getString(R.string.vibrate_on));
         mDefaultIMPref = (CheckBoxPreference) prefSet
         .findPreference(getString(R.string.default_im));        
+        mCandidateCntPref = (ListPreference) prefSet
+        .findPreference(getString(R.string.candidate_cnt));
 //        mPredictionPref = (CheckBoxPreference) prefSet
 //                .findPreference(getString(R.string.setting_prediction_key));
         
@@ -71,6 +75,7 @@ public class ZhuYinIMESettingsActivity extends PreferenceActivity implements
         ZhuYinIMESettings.setKeySound(mKeySoundPref.isChecked());
         ZhuYinIMESettings.setVibrate(mVibratePref.isChecked());
         ZhuYinIMESettings.setDefaultIM(mDefaultIMPref.isChecked());
+        ZhuYinIMESettings.setCandidateCnt(Integer.parseInt(mCandidateCntPref.getEntry().toString()));
 //        Settings.setPrediction(mPredictionPref.isChecked());
 
         ZhuYinIMESettings.writeBack();
@@ -84,6 +89,7 @@ public class ZhuYinIMESettingsActivity extends PreferenceActivity implements
         mKeySoundPref.setChecked(ZhuYinIMESettings.getKeySound());
         mVibratePref.setChecked(ZhuYinIMESettings.getVibrate());
         mDefaultIMPref.setChecked(ZhuYinIMESettings.getDefaultIM());
+        mCandidateCntPref.setDefaultValue(String.valueOf(ZhuYinIMESettings.getCandidateCnt()));
 //        mPredictionPref.setChecked(Settings.getPrediction());
     }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2008 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,4 +42,13 @@
 			android:summaryOff="@string/default_im_english"          
             />      
          
+    <ListPreference
+			android:key="@string/candidate_cnt"
+			android:title="@string/candidate_cnt_keypress"
+			android:defaultValue="50"
+			android:entries="@array/candidate_cnt_list"
+			android:entryValues="@array/candidate_cnt_list_value"
+			android:dialogTitle="@string/candidate_cnt_keypress"
+			/>
+			         
 </PreferenceScreen>
