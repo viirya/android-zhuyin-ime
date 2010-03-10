@@ -152,10 +152,10 @@ public class WordsDBTSI {
 	        while(iterator.hasNext()) {
 	        	String codeStr = iterator.next().toString();
 	        	stat.executeUpdate("CREATE TABLE words_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
-				stat.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code, word, frequency, use);");
+				//stat.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code, word, frequency, use);");
 	        	//stat.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code);");
 	        	stat.executeUpdate("CREATE TABLE phrases_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
-				stat.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code, word, frequency, use);");
+				//stat.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code, word, frequency, use);");
 	        	//stat.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code);");
 	        }
 	            			
