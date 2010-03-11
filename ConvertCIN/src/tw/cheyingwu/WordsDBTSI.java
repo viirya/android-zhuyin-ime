@@ -30,6 +30,7 @@ public class WordsDBTSI {
 
 	private String wordsTablePath;
 	private String wordsDBPath;
+	private String phrasesDBPath;
 
 	private List<WordRow> wordRowList;
 
@@ -38,7 +39,8 @@ public class WordsDBTSI {
 
 	public WordsDBTSI() {
 		this.wordsTablePath = "res/tsi.src";
-		this.wordsDBPath = "ZhuYin.db";
+		this.wordsDBPath = "ZhuYinWords.db";
+		this.phrasesDBPath = "ZhuYinPhrases.db";
 
 		this.wordRowList = new ArrayList<WordRow>();
 
@@ -140,23 +142,29 @@ public class WordsDBTSI {
 				if(listOfFiles[i].getName().startsWith(this.wordsDBPath))
 					listOfFiles[i].delete();
 			}
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if(listOfFiles[i].getName().startsWith(this.phrasesDBPath))
+					listOfFiles[i].delete();
+			}			
 		}
 	
 		try {
 			Class.forName("org.sqlite.JDBC");
-			Connection conn = DriverManager.getConnection("jdbc:sqlite:" + this.wordsDBPath);
-			Statement stat = conn.createStatement();
+			Connection connWords = DriverManager.getConnection("jdbc:sqlite:" + this.wordsDBPath);
+			Connection connPhrases = DriverManager.getConnection("jdbc:sqlite:" + this.phrasesDBPath);
+			Statement statWords = connWords.createStatement();
+			Statement statPhrases = connPhrases.createStatement();
 
 	        Collection collection = codeTable.values();
 	        Iterator iterator = collection.iterator();
 	        while(iterator.hasNext()) {
 	        	String codeStr = iterator.next().toString();
-	        	stat.executeUpdate("CREATE TABLE words_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
-				//stat.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code, word, frequency, use);");
-	        	//stat.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code);");
-	        	stat.executeUpdate("CREATE TABLE phrases_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
-				//stat.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code, word, frequency, use);");
-	        	//stat.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code);");
+	        	statWords.executeUpdate("CREATE TABLE words_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
+				//statWords.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code, word, frequency, use);");
+	        	//statWords.executeUpdate("CREATE INDEX idx_words_" + codeStr + "_code ON words_" + codeStr + " (code);");
+	        	statPhrases.executeUpdate("CREATE TABLE phrases_" + codeStr + " (code VARCHAR, word VARCHAR, frequency INTEGER, use INTEGER not null);");
+				//statPhrases.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code, word, frequency, use);");
+	        	//statPhrases.executeUpdate("CREATE INDEX idx_phrases_" + codeStr + "_code ON phrases_" + codeStr + " (code);");
 	        }
 	            			
 			String insertSQL;
@@ -164,30 +172,41 @@ public class WordsDBTSI {
 			
 			for (WordRow wr : this.wordRowList) {
 			 // Filter words
-			 if(wr.frequency>200 || (wr.word.length()==1 && wr.frequency>1)) {
+			 if(wr.frequency>400 || (wr.word.length()==1 && wr.frequency>1)) {
 				 
 				 if(wr.word.length()==1) {
 					 insertSQL = "INSERT INTO words_";
+					 insertSQL +=  wr.code.substring(0, 2) + " VALUES ('" + wr.code + "', '" + wr.word + "', " + wr.frequency + ", 0);";
+					 statWords.addBatch(insertSQL);
 					 iWord++;
 				 }else {
 					 insertSQL = "INSERT INTO phrases_";
+					 insertSQL +=  wr.code.substring(0, 2) + " VALUES ('" + wr.code + "', '" + wr.word + "', " + wr.frequency + ", 0);";
+					 statPhrases.addBatch(insertSQL);					 
 					 iPhrase++;
 				 }
 				 
-				 insertSQL +=  wr.code.substring(0, 2) + " VALUES ('" + wr.code + "', '" + wr.word + "', " + wr.frequency + ", 0);";
-				 stat.addBatch(insertSQL);
 			 }
 			}
 
-			conn.setAutoCommit(false);
-			stat.executeBatch();
-			conn.setAutoCommit(true);
+			connWords.setAutoCommit(false);
+			statWords.executeBatch();
+			connWords.setAutoCommit(true);
+			
+			connPhrases.setAutoCommit(false);
+			statPhrases.executeBatch();
+			connPhrases.setAutoCommit(true);
 			
 			// Create android_metadata
-			stat.executeUpdate("CREATE TABLE android_metadata (locale VARCHAR);");
-			stat.executeUpdate("INSERT INTO android_metadata VALUES ('zh_TW');");
+			statWords.executeUpdate("CREATE TABLE android_metadata (locale VARCHAR);");
+			statWords.executeUpdate("INSERT INTO android_metadata VALUES ('zh_TW');");
+
+			statPhrases.executeUpdate("CREATE TABLE android_metadata (locale VARCHAR);");
+			statPhrases.executeUpdate("INSERT INTO android_metadata VALUES ('zh_TW');");
+
+			connWords.close();
+			connPhrases.close();
 			
-			conn.close();
 			System.out.println("總共: " + iWord + " 字, " + iPhrase + " 詞");
 
 		} catch (ClassNotFoundException e) {
@@ -200,10 +219,10 @@ public class WordsDBTSI {
 
 	}
 	
-	public void splitDB(){
+	private void splitDataBase(String DB_Name){
 		try {
 			
-	    FileInputStream fis = new FileInputStream(this.wordsDBPath);
+	    FileInputStream fis = new FileInputStream(DB_Name);
 	    int size = 921600; // 900KB, Android assets input file has 1MB limitaion.
 	    byte buffer[] = new byte[size];
 
@@ -213,7 +232,7 @@ public class WordsDBTSI {
 	      if (i == -1)
 	        break;
 
-	      String filename = this.wordsDBPath + count;
+	      String filename = DB_Name + count;
 
 	      FileOutputStream fos = new FileOutputStream(filename);
 	      fos.write(buffer, 0, i);
@@ -225,5 +244,10 @@ public class WordsDBTSI {
 		} catch (IOException e){
 			e.printStackTrace();
 		}
+	}
+	
+	public void splitDB(){
+		splitDataBase(this.wordsDBPath);
+		splitDataBase(this.phrasesDBPath);
 	}
 }

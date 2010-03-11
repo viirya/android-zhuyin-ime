@@ -1,6 +1,4 @@
 
 Run Java Application ZhuYinIMEDBTSI to generate ZhuYin.db
 
-總共: 14190 字, 16207 詞
-
-
+總共: 14190 字, 10064 詞

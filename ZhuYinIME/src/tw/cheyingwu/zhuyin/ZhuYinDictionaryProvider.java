@@ -32,7 +32,8 @@ import android.widget.Toast;
 public class ZhuYinDictionaryProvider extends ContentProvider {
 	
 	private static final String TAG = "ZhuYinIME";
-	private static final String DATABASE_NAME = "ZhuYin.db";
+	private static final String DBWORDS_NAME = "ZhuYinWords.db";
+	private static final String DBPHRASES_NAME = "ZhuYinPhrases.db";
 	private static final int DATABASE_VERSION = 2010022604;
 	private static final String NOTES_TABLE_NAME = "zi";
 	private static final Integer INPUT_DB_FILES = 10; // According to ZhuYin.dbx in assets
@@ -42,19 +43,21 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	private static String mSearchCode;
 
 	private Context context;
-	private SQLiteDatabase db;
-	
+	private SQLiteDatabase dbWords;
+	private SQLiteDatabase dbPhrases;
 
 	/**
 	 * This class helps open, create, and upgrade the database file.
 	 */
-	private static class DatabaseHelper extends SQLiteOpenHelper {
+	private class DatabaseHelper extends SQLiteOpenHelper {
 
-		private static String DB_PATH = "/data/data/tw.cheyingwu.zhuyin/databases/";
+		private String DB_PATH = "/data/data/tw.cheyingwu.zhuyin/databases/";
 		private final Context myContext;
+		private String dbName;
 
-		DatabaseHelper(Context context) {
-			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		DatabaseHelper(Context context, String DBName) {
+			super(context, DBName, null, DATABASE_VERSION);
+			this.dbName = DBName;
 			this.myContext = context;
 		}
 
@@ -116,7 +119,7 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 			SQLiteDatabase checkDB = null;
 
 			try {
-				String myPath = DB_PATH + DATABASE_NAME;
+				String myPath = DB_PATH + this.dbName;
 				Boolean exists = (new File(myPath)).exists();
 				if(exists) {
 					checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
@@ -143,21 +146,24 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 			//Log.i(TAG, "start to copy database");
 
 			InputStream myInput;
+			String outFileName;
+			OutputStream myOutput;
+			Integer fIdx;
 			
 			// Path to the just created empty db
-			String outFileName = DB_PATH + DATABASE_NAME;
-
+			outFileName = DB_PATH + this.dbName;
 			// Open the empty db as the output stream
-			OutputStream myOutput = new FileOutputStream(outFileName);
+			myOutput = new FileOutputStream(outFileName);
 
-			for(Integer fIdx = 0; fIdx < INPUT_DB_FILES; fIdx++) {
+			for(fIdx = 0; fIdx < INPUT_DB_FILES; fIdx++) {
 
 				// Open your local db as the input stream
 				try {
-					myInput = myContext.getAssets().open(DATABASE_NAME + fIdx.toString());
+					myInput = myContext.getAssets().open(this.dbName + fIdx.toString());
 				} catch (IOException e)
 				{
 					// No such file
+					System.out.println("Unable to open input file " + this.dbName + fIdx.toString() + "!!");
 					break;
 				}			
 
@@ -175,7 +181,7 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 
 			// Close the streams
 			myOutput.flush();
-			myOutput.close();
+			myOutput.close();			
 		}	
 	}
 
@@ -243,14 +249,17 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	}
 	
 		
-	private DatabaseHelper mOpenHelper;
+	private DatabaseHelper mOpenHelperWords;
+	private DatabaseHelper mOpenHelperPhrases;
 	
 	public ZhuYinDictionaryProvider(Context ctx) {
 		this.context = ctx;
-		mOpenHelper = new DatabaseHelper(this.context);
+		mOpenHelperWords = new DatabaseHelper(this.context, DBWORDS_NAME);
+		mOpenHelperPhrases = new DatabaseHelper(this.context, DBPHRASES_NAME);
 
 		try {
-			mOpenHelper.createDataBase();
+			mOpenHelperWords.createDataBase();
+			mOpenHelperPhrases.createDataBase();
 		} catch (IOException ioe) {
 			// throw new Error("Unable to create database");
 			Toast.makeText(ctx, R.string.db_create_error, Toast.LENGTH_SHORT).show();
@@ -280,34 +289,41 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		//Log.i(TAG, "CREATE TABLE");
-
-		mOpenHelper = new DatabaseHelper(getContext());
-
+		mOpenHelperWords = new DatabaseHelper(getContext(), DBWORDS_NAME);
+		mOpenHelperPhrases = new DatabaseHelper(getContext(), DBPHRASES_NAME);
 		return true;
 	}
 
+/*
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
-		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+		//SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
-		qb.setTables(NOTES_TABLE_NAME);
-		qb.setProjectionMap(sNotesProjectionMap);
+		//qb.setTables(NOTES_TABLE_NAME);
+		//qb.setProjectionMap(sNotesProjectionMap);
 
 		// If no sort order is specified use the default
-		String orderBy = sortOrder;
+		//String orderBy = sortOrder;
 
 		// Get the database and run the query
-		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-		Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, orderBy);
+		//SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+		//Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, orderBy);
 
 		// Tell the cursor what uri to watch, so it knows when its source data
 		// changes
-		c.setNotificationUri(getContext().getContentResolver(), uri);
-		return c;
-
+		//c.setNotificationUri(getContext().getContentResolver(), uri);
+		//return c;
+		return null;
 	}
-
+*/
+	@Override
+	public Cursor query(Uri uri, String[] projection, String selection,
+			String[] selectionArgs, String sortOrder) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		// TODO Auto-generated method stub
@@ -315,12 +331,14 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	}
 
 	public ZhuYinDictionaryProvider open() {
-		db = mOpenHelper.getWritableDatabase();
+		dbWords = mOpenHelperWords.getWritableDatabase();
+		dbPhrases = mOpenHelperPhrases.getWritableDatabase();
 		return this;
 	}
 
 	public void close() {
-		mOpenHelper.close();
+		mOpenHelperWords.close();
+		mOpenHelperPhrases.close();
 	}
 
 	public void setSearchCode(String code) {
@@ -330,29 +348,29 @@ public class ZhuYinDictionaryProvider extends ContentProvider {
 	public void useWords(String word) {
 		String code = mSearchCode;
 		if(word.length() > 1)
-			db.execSQL("update phrases_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
+			dbPhrases.execSQL("update phrases_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
 		else	
-			db.execSQL("update words_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
+			dbWords.execSQL("update words_" + code.substring(0, 2) + " set use=use+1 where word='" + word + "'");
 		//Log.i(TAG, "update words set use=use+1 where word='" + code + "'");
 	}	
 
 	public Cursor getPhrases(Integer limit) {
 		String code = mSearchCode;
-		Cursor mCursor = db.query(true, "phrases_" + code.substring(0, 2), new String[] { "word" }, "code LIKE '" + code + "%' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
+		Cursor mCursor = dbPhrases.query(true, "phrases_" + code.substring(0, 2), new String[] { "word" }, "code LIKE '" + code + "%' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsRough");
 		return mCursor;
 	}
 
 	public Cursor getWordsExactly(Integer limit) {
 		String code = mSearchCode;
-		Cursor mCursor = db.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
+		Cursor mCursor = dbWords.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsExactly");
 		return mCursor;
 	}
 
 	public Cursor getWordsRough(Integer limit) {
 		String code = mSearchCode;
-		Cursor mCursor = db.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code like '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
+		Cursor mCursor = dbWords.query(true, "words_" + code.substring(0, 2), new String[] { "word" }, "code like '" + code + "%' and code!='" + code + "' group by word", null, null, null, "use DESC, frequency DESC", limit.toString());
 		//Log.i(TAG, "getWordsExactly");
 		return mCursor;
 	}
